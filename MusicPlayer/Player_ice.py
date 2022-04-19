@@ -42,14 +42,14 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
         def end_GetMusics(self, _r):
             return _M_MusicPlayer.Player._op_GetMusics.end(self, _r)
 
-        def AddMusic(self, offset, partiesMusique, path, context=None):
-            return _M_MusicPlayer.Player._op_AddMusic.invoke(self, ((offset, partiesMusique, path), context))
+        def AddMusic(self, offset, partiesMusique, path, titre, artistes, album, context=None):
+            return _M_MusicPlayer.Player._op_AddMusic.invoke(self, ((offset, partiesMusique, path, titre, artistes, album), context))
 
-        def AddMusicAsync(self, offset, partiesMusique, path, context=None):
-            return _M_MusicPlayer.Player._op_AddMusic.invokeAsync(self, ((offset, partiesMusique, path), context))
+        def AddMusicAsync(self, offset, partiesMusique, path, titre, artistes, album, context=None):
+            return _M_MusicPlayer.Player._op_AddMusic.invokeAsync(self, ((offset, partiesMusique, path, titre, artistes, album), context))
 
-        def begin_AddMusic(self, offset, partiesMusique, path, _response=None, _ex=None, _sent=None, context=None):
-            return _M_MusicPlayer.Player._op_AddMusic.begin(self, ((offset, partiesMusique, path), _response, _ex, _sent, context))
+        def begin_AddMusic(self, offset, partiesMusique, path, titre, artistes, album, _response=None, _ex=None, _sent=None, context=None):
+            return _M_MusicPlayer.Player._op_AddMusic.begin(self, ((offset, partiesMusique, path, titre, artistes, album), _response, _ex, _sent, context))
 
         def end_AddMusic(self, _r):
             return _M_MusicPlayer.Player._op_AddMusic.end(self, _r)
@@ -66,29 +66,17 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
         def end_DeleteMusic(self, _r):
             return _M_MusicPlayer.Player._op_DeleteMusic.end(self, _r)
 
-        def RenameMusic(self, oldName, newName, context=None):
-            return _M_MusicPlayer.Player._op_RenameMusic.invoke(self, ((oldName, newName), context))
+        def ModifyMusic(self, musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum, context=None):
+            return _M_MusicPlayer.Player._op_ModifyMusic.invoke(self, ((musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum), context))
 
-        def RenameMusicAsync(self, oldName, newName, context=None):
-            return _M_MusicPlayer.Player._op_RenameMusic.invokeAsync(self, ((oldName, newName), context))
+        def ModifyMusicAsync(self, musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum, context=None):
+            return _M_MusicPlayer.Player._op_ModifyMusic.invokeAsync(self, ((musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum), context))
 
-        def begin_RenameMusic(self, oldName, newName, _response=None, _ex=None, _sent=None, context=None):
-            return _M_MusicPlayer.Player._op_RenameMusic.begin(self, ((oldName, newName), _response, _ex, _sent, context))
+        def begin_ModifyMusic(self, musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum, _response=None, _ex=None, _sent=None, context=None):
+            return _M_MusicPlayer.Player._op_ModifyMusic.begin(self, ((musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum), _response, _ex, _sent, context))
 
-        def end_RenameMusic(self, _r):
-            return _M_MusicPlayer.Player._op_RenameMusic.end(self, _r)
-
-        def ReplaceMusic(self, oldSong, newSong, context=None):
-            return _M_MusicPlayer.Player._op_ReplaceMusic.invoke(self, ((oldSong, newSong), context))
-
-        def ReplaceMusicAsync(self, oldSong, newSong, context=None):
-            return _M_MusicPlayer.Player._op_ReplaceMusic.invokeAsync(self, ((oldSong, newSong), context))
-
-        def begin_ReplaceMusic(self, oldSong, newSong, _response=None, _ex=None, _sent=None, context=None):
-            return _M_MusicPlayer.Player._op_ReplaceMusic.begin(self, ((oldSong, newSong), _response, _ex, _sent, context))
-
-        def end_ReplaceMusic(self, _r):
-            return _M_MusicPlayer.Player._op_ReplaceMusic.end(self, _r)
+        def end_ModifyMusic(self, _r):
+            return _M_MusicPlayer.Player._op_ModifyMusic.end(self, _r)
 
         def PrintMusics(self, music, context=None):
             return _M_MusicPlayer.Player._op_PrintMusics.invoke(self, ((music, ), context))
@@ -162,18 +150,6 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
         def end_searchAuthor(self, _r):
             return _M_MusicPlayer.Player._op_searchAuthor.end(self, _r)
 
-        def SendParts(self, titre, parts, context=None):
-            return _M_MusicPlayer.Player._op_SendParts.invoke(self, ((titre, parts), context))
-
-        def SendPartsAsync(self, titre, parts, context=None):
-            return _M_MusicPlayer.Player._op_SendParts.invokeAsync(self, ((titre, parts), context))
-
-        def begin_SendParts(self, titre, parts, _response=None, _ex=None, _sent=None, context=None):
-            return _M_MusicPlayer.Player._op_SendParts.begin(self, ((titre, parts), _response, _ex, _sent, context))
-
-        def end_SendParts(self, _r):
-            return _M_MusicPlayer.Player._op_SendParts.end(self, _r)
-
         @staticmethod
         def checkedCast(proxy, facetOrContext=None, context=None):
             return _M_MusicPlayer.PlayerPrx.ice_checkedCast(proxy, '::MusicPlayer::Player', facetOrContext, context)
@@ -206,17 +182,14 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
         def GetMusics(self, current=None):
             raise NotImplementedError("servant method 'GetMusics' not implemented")
 
-        def AddMusic(self, offset, partiesMusique, path, current=None):
+        def AddMusic(self, offset, partiesMusique, path, titre, artistes, album, current=None):
             raise NotImplementedError("servant method 'AddMusic' not implemented")
 
         def DeleteMusic(self, name, current=None):
             raise NotImplementedError("servant method 'DeleteMusic' not implemented")
 
-        def RenameMusic(self, oldName, newName, current=None):
-            raise NotImplementedError("servant method 'RenameMusic' not implemented")
-
-        def ReplaceMusic(self, oldSong, newSong, current=None):
-            raise NotImplementedError("servant method 'ReplaceMusic' not implemented")
+        def ModifyMusic(self, musiqueAModifier, nouveauTitre, nouveauxArtistes, nouvelAlbum, current=None):
+            raise NotImplementedError("servant method 'ModifyMusic' not implemented")
 
         def PrintMusics(self, music, current=None):
             raise NotImplementedError("servant method 'PrintMusics' not implemented")
@@ -236,9 +209,6 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
         def searchAuthor(self, author, current=None):
             raise NotImplementedError("servant method 'searchAuthor' not implemented")
 
-        def SendParts(self, titre, parts, current=None):
-            raise NotImplementedError("servant method 'SendParts' not implemented")
-
         def __str__(self):
             return IcePy.stringify(self, _M_MusicPlayer._t_PlayerDisp)
 
@@ -248,17 +218,15 @@ if 'PlayerPrx' not in _M_MusicPlayer.__dict__:
     Player._ice_type = _M_MusicPlayer._t_PlayerDisp
 
     Player._op_GetMusics = IcePy.Operation('GetMusics', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_string, False, 0), ())
-    Player._op_AddMusic = IcePy.Operation('AddMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0), ((), _M_MusicPlayer._t_bytes, False, 0), ((), IcePy._t_string, False, 0)), (), None, ())
+    Player._op_AddMusic = IcePy.Operation('AddMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0), ((), _M_MusicPlayer._t_bytes, False, 0), ((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0)), (), None, ())
     Player._op_DeleteMusic = IcePy.Operation('DeleteMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0),), (), None, ())
-    Player._op_RenameMusic = IcePy.Operation('RenameMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0)), (), None, ())
-    Player._op_ReplaceMusic = IcePy.Operation('ReplaceMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0)), (), None, ())
+    Player._op_ModifyMusic = IcePy.Operation('ModifyMusic', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0), ((), IcePy._t_string, False, 0)), (), None, ())
     Player._op_PrintMusics = IcePy.Operation('PrintMusics', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0),), (), None, ())
     Player._op_Play = IcePy.Operation('Play', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0),), (), ((), IcePy._t_bool, False, 0), ())
-    Player._op_Pause = IcePy.Operation('Pause', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), None, ())
+    Player._op_Pause = IcePy.Operation('Pause', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_string, False, 0), ())
     Player._op_Stop = IcePy.Operation('Stop', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_bool, False, 0), ())
     Player._op_SearchTitle = IcePy.Operation('SearchTitle', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0),), (), None, ())
     Player._op_searchAuthor = IcePy.Operation('searchAuthor', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0),), (), None, ())
-    Player._op_SendParts = IcePy.Operation('SendParts', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_string, False, 0), ((), _M_MusicPlayer._t_bytes, False, 0)), (), ((), _M_MusicPlayer._t_bytes, False, 0), ())
 
     _M_MusicPlayer.Player = Player
     del Player
