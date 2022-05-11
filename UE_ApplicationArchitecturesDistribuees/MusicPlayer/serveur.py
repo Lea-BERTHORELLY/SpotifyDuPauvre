@@ -5,6 +5,10 @@ import vlc
 from pydub import AudioSegment
 import io
 import shutil
+import mutagen
+from mutagen.mp3 import MP3
+import speech_recognition as sr
+import nlp
 
 import sqlite3
 
@@ -31,22 +35,17 @@ class PlayerI(MusicPlayer.Player):
     def PrintMusics(self, i, current=None):
 
         musiquesBDD=[]
-        #print(s.replace(".mp3",'')) #On affiche seulement le nom de la musique, pas l'extension
-        #print(cursorDatabase.execute("SELECT * FROM Musiques "))
-        cursorDatabase.execute("SELECT Titre, Artistes, Album, UrlStream FROM Musiques LIMIT 1 OFFSET " + str(i))
-        #cursorDatabase.execute(" SELECT * FROM Musiques WHERE Id =? " ,(1))
+        cursorDatabase.execute("SELECT Titre, Artistes, Album, UrlStream, Duree FROM Musiques LIMIT 1 OFFSET " + str(i))
         for row in cursorDatabase:
-            print(row[0], ' ', row[1],' ', row[2],' ', row[3])
+            print(row[0], ' ', row[1],' ', row[2],' ', row[3], ' ',row[4])
             musiquesBDD.append(str(row[0]))
-            #print(musiquesBDD[0])
             musiquesBDD.append(str(row[1]))
-            #print(musiquesBDD[1])
             musiquesBDD.append(str(row[2]))
             musiquesBDD.append(str(row[3]))
-            #print(musiquesBDD[0], ' ', musiquesBDD[1],' ', musiquesBDD[2],' ', musiquesBDD[3])
+            musiquesBDD.append(str(row[4]))
         return musiquesBDD
 
-    def AddMusic(self,offset,partiesMusique:bytes, path, titre, artistes, album, current=None):
+    def AddMusic(self,offset,partiesMusique:bytes, path, current=None):
         #url = "/mnt/d/Documents/Cours/CERI/M1/S2/Middleware/MusicPlayer/Musiques/"
         #Création du fichier sur le pc
         musiqueAjoutee = open(path,'ab+')
@@ -54,10 +53,10 @@ class PlayerI(MusicPlayer.Player):
         musiqueAjoutee.write(partiesMusique)
         musiqueAjoutee.close()
 
-    def AddMusicDatabase(self, titre, artistes, album, current=None):
+    def AddMusicDatabase(self, titre, artistes, album, duree, current=None):
         #Création du fichier dans la bdd
-        urlStream = "http://192.168.68.112:8080/"+titre.replace(" ",'')
-        cursorDatabase.execute("INSERT INTO Musiques(Titre,Artistes,Album,UrlStream) VALUES(?,?,?,?) ", (titre,artistes,album,urlStream))
+        urlStream = "http://192.168.68.113:8080/"+titre.replace(" ",'')
+        cursorDatabase.execute("INSERT INTO Musiques(Titre,Artistes,Album,UrlStream,Duree) VALUES(?,?,?,?) ", (titre,artistes,album,urlStream,duree))
         connectionDatabase.commit()
         print("Musique ajoutée !")
 
@@ -113,9 +112,9 @@ class PlayerI(MusicPlayer.Player):
         else:
             print("La musique n'existe pas et ne peut par conséquent être supprimée") 
 
-    def Avancer(self, current=None):
+    def Avancer(self, s, current=None):
         print(player.get_time())
-        player.set_time(player.get_time()+10000)
+        player.set_time(player.get_time()+1000)
         print(player.get_time())
 
     def Reculer(self,s, current=None):
@@ -123,10 +122,27 @@ class PlayerI(MusicPlayer.Player):
         player.set_time(player.get_time()-(s*1000))
         print(player.get_time())
 
+    def AsrNlp(self, current=None):
+        requete = []
+        cheminEnregistrement = "commande.3gpp"
+        print(cheminEnregistrement)
+        recuperation = nlp.recuperationRequete(cheminEnregistrement)
+        requete.append(recuperation[0])
+        requete.append(recuperation[1])
+        print("requete récupérée !")
+        return (requete)
+
+
+    def send(self,offset, chunk:bytes,current=None):
+        commande = open("/mnt/d/Documents/Cours/CERI/M1/S2/AAD/MusicPlayer/commande.3gpp",'wb+')
+        commande.seek(offset)
+        commande.write(chunk)
+        commande.close()
+        print("fichier récupéré !")
 
 
 with Ice.initialize(sys.argv) as communicator:
-    adapter = communicator.createObjectAdapterWithEndpoints("SimplePrinterAdapter", "tcp -h 192.168.1.45 -p 10000")
+    adapter = communicator.createObjectAdapterWithEndpoints("SimplePrinterAdapter", "tcp -h 10.126.5.158 -p 10000")
     object = PlayerI()
     adapter.add(object, communicator.stringToIdentity("SimplePrinter"))
     adapter.activate()

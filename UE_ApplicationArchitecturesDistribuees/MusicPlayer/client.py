@@ -1,6 +1,7 @@
 import sys, Ice, os, IceGrid
 import MusicPlayer
-
+import mutagen
+from mutagen.mp3 import MP3
 
 import sqlite3
 
@@ -34,7 +35,7 @@ with Ice.initialize(sys.argv) as communicator:
 	#if not printer:
 	#	raise RuntimeError("Invalid proxy")
 
-	base = communicator.stringToProxy("SimplePrinter:tcp -h 192.168.1.45 -p 10000")
+	base = communicator.stringToProxy("SimplePrinter:tcp -h 10.126.5.158 -p 10000")
 	printer = MusicPlayer.PlayerPrx.checkedCast(base)
 	if not printer:
 		raise RuntimeError("Invalid proxy")
@@ -80,7 +81,7 @@ with Ice.initialize(sys.argv) as communicator:
 					chunck = file.read(chunkSize)
 					if chunck == bytes('','utf-8') or chunck == None:
 						break
-					r = printer.begin_AddMusic(offset, chunck, remotePath, titre, artistes, album)
+					r = printer.begin_AddMusic(offset, chunck, remotePath)
 					offset += len(chunck)
 
 					r.waitForSent()
@@ -95,7 +96,8 @@ with Ice.initialize(sys.argv) as communicator:
 					r = results[0]
 					del results[0]
 					r.waitForCompleted()
-				printer.AddMusicDatabase(titre, artistes, album)
+				duree=MP3(fichier).info.length
+				printer.AddMusicDatabase(titre, artistes, album, duree)
 				print("Musique ajoutée avec succès !")
 
 			elif choice.lower() == "avancer" :
