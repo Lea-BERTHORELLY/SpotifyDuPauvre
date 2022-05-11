@@ -1,24 +1,18 @@
 package com.example.lecteuraudio;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioAttributes;
 import android.media.AudioManager;
-//import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -30,33 +24,40 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SeekBar;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import org.videolan.libvlc.*;
+import com.zeroc.Ice.Util;
+import com.zeroc.Ice.*;
+
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.Exception;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import com.zeroc.Ice.Util;
+
 
 public class MainActivity extends Activity {
 
@@ -78,7 +79,10 @@ public class MainActivity extends Activity {
     private TextView temps_total;
     private TextView temps_ecoule;
     private int affichage;
-    private Media media;
+    //private Media media;
+    private MediaRecorder mediaRecorder;
+
+    private AudioManager audioManager;
     
     Handler handler;
 
@@ -87,7 +91,7 @@ public class MainActivity extends Activity {
     boolean isPaused=false;
     int idMusiqueEnCours;
 
-    int debut=0;
+    //int debut=0;
     Runnable runnable;
 
     com.zeroc.Ice.Communicator communicator;
@@ -100,11 +104,16 @@ public class MainActivity extends Activity {
 
     Musique[] ListMusiques;
 
+    String[] requete = new String[2];
+
 
     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()); //on récupère la date du jour + l'heure d'enregistrement
     //@RequiresApi(api = Build.VERSION_CODES.N)
+    boolean isRecording =false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -128,38 +137,17 @@ public class MainActivity extends Activity {
         temps_ecoule = findViewById(R.id.temps_ecoule);
 
         playPause.setBackgroundResource(R.drawable.pause_logo);
-
-
+        
         libVlc = new LibVLC(this);
         mediaPlayer = new MediaPlayer(libVlc);
 
         ListView musicsListView = (ListView)findViewById(R.id.listeMusiques);
 
 
-       /* Musique WCHB = new Musique("What Could Have Been","Sting", "Arcane","https://www.cjoint.com/doc/22_02/LBvn7BKDNtn_sting-what-could-have-been-arcane-league-of-legends-riot-games-music.mp3");
-        Musique Playground = new Musique("Playground","Bea Miller", "Arcane","https://www.cjoint.com/doc/22_02/LBvoawqgrSn_bea-miller-playground-arcane-league-of-legends-riot-games-music.mp3");
-        Musique PopStars = new Musique("Pop Stars","KDA", "All Out","https://www.cjoint.com/doc/22_02/LBvl5xEnZNn_K-DA---POP-STARS-LYRICS-ft-G-I-DLE-Madison-Beer-Jaira-Burns-Color-Coded-Eng-Rom-Han-%EA%B0%80%EC%82%AC-.mp3");
-        Musique More = new Musique("More", "KDA", "All Out" ,"https://www.cjoint.com/doc/22_03/LCcqcABmHOE_MORE.mp3");
-        Musique TheBridge = new Musique("The Bridge", "Ray Chen", "Arcane " ,"https://www.cjoint.com/doc/22_03/LCcqfuJuvEE_The-Bridge.mp3");
-        Musique Villain = new Musique("Villain", "KDA", " " ,"https://www.cjoint.com/doc/22_03/LCcqf5hc5LE_Villain.mp3");
-        Musique DLA = new Musique("Dirty Little Animals", "Bones UK", "Arcane" ,"https://www.cjoint.com/doc/22_03/LCdrOiGNxTE_Dirty-Little-Animals.mp3");
-        Musique Enemy = new Musique("Enemy", "Imagine Dragons", "Arcane" ,"https://www.cjoint.com/doc/22_03/LCdrO7YhuIE_Enemy.mp3");
-        Musique MisfitToys = new Musique("Misfit Toys", "Pusha T & Mako", "Arcane" ,"https://www.cjoint.com/doc/22_03/LCdrQwSgW5E_Misfit-Toys.mp3");
-        Musique Goodbye = new Musique("Goodbye", "Ramsey", "Arcane" ,"https://www.cjoint.com/doc/22_03/LCdrPUgZC7E_Goodbye.mp3");
-        Musique Awaken = new Musique("Awaken","Valerie Broussard","LoL","http://192.168.68.110:8080/Awaken");
-        Musique[] musiques = new Musique[]{WCHB,Playground, PopStars, More, TheBridge, Villain, DLA, Enemy, MisfitToys, Goodbye,Awaken};*/
-
-
-       /* ArrayAdapter<Musique> musicsArrayAdapter = new ArrayAdapter<Musique>(this, android.R.layout.simple_list_item_1 , musiques);
-        musicsArrayAdapter.sort((m1, m2) ->
-                m1.getTitre().compareToIgnoreCase(m2.getTitre())); //on affiche les musiques par ordre alphabétique au lancement de l'appli
-        affichage=1;*/
-
-
 
         try {
             communicator = Util.initialize();
-            obj = communicator.stringToProxy("SimplePrinter:tcp -h 192.168.1.45 -p 10000");
+            obj = communicator.stringToProxy("SimplePrinter:tcp -h 10.126.5.158 -p 10000"); //192.168.68.113
             player = MusicPlayer.PlayerPrx.checkedCast(obj);
             //player.test();
             Toast.makeText(this, "Connexion au serveur de streaming...", Toast.LENGTH_LONG).show();
@@ -167,7 +155,7 @@ public class MainActivity extends Activity {
 
 
         }
-        catch (Exception e){
+        catch (java.lang.Exception e){
             Toast.makeText(this, "Erreur de connection au serveur de streaming", Toast.LENGTH_LONG).show();
         }
 
@@ -175,8 +163,8 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "0 musiques disponibles", Toast.LENGTH_LONG).show();
         }
         nbMusiques=player.GetNumberOfMusics();
-        recuperationMusique = new String[4];
-        listeMusiquesIce = new String[nbMusiques][4];
+        recuperationMusique = new String[5];
+        listeMusiquesIce = new String[nbMusiques][5];
         ListMusiques = new Musique[nbMusiques];
 
 
@@ -187,7 +175,8 @@ public class MainActivity extends Activity {
             listeMusiquesIce[i][1]= recuperationMusique[1];
             listeMusiquesIce[i][2]= recuperationMusique[2];
             listeMusiquesIce[i][3]= recuperationMusique[3];
-            Musique musique =new Musique(listeMusiquesIce[i][0],listeMusiquesIce[i][1],listeMusiquesIce[i][2],listeMusiquesIce[i][3]);
+            listeMusiquesIce[i][4]= recuperationMusique[4];
+            Musique musique = new Musique(listeMusiquesIce[i][0],listeMusiquesIce[i][1],listeMusiquesIce[i][2],listeMusiquesIce[i][3],Integer.parseInt(listeMusiquesIce[i][4]));
             ListMusiques[i]=musique;
         }
 
@@ -212,6 +201,7 @@ public class MainActivity extends Activity {
         //musicsListView.setAdapter(musicsArrayAdapter);
         musicsListView.setAdapter(musicsArrayAdapter);
 
+
         musicsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
@@ -227,7 +217,7 @@ public class MainActivity extends Activity {
                 seconds = seconds % 60;
                 temps_ecoule.setText("00:00");
                 temps_total.setText(String.valueOf(minutes)+":"+String.valueOf(seconds));
-                seekBar.setMax((int) mediaPlayer.getLength());
+                seekBar.setMax(musicsArrayAdapter.getItem(i).getDuree()*1000);
                 updateSeekBar();
 
                 if (isPaused==true){
@@ -253,11 +243,12 @@ public class MainActivity extends Activity {
 
                     //mediaPlayer.play();
                     seekBar.setProgress(0);
-                    putDuration();
+                    String endTime = createDuration(musicsArrayAdapter.getItem(idMusiqueEnCours).getDuree());
+                    temps_total.setText(endTime);
                 }
                 if(!mediaPlayer.isPlaying()){
                     urlMusiqueEnCours=urlMusique;
-                    Log.i("testPlay",musicsArrayAdapter.getItem(i).getTitre());
+                    //Log.i("testPlay",musicsArrayAdapter.getItem(i).getTitre());
                     stopPlaying();
                     player.Stop();
                     //mediaPlayer.release();
@@ -267,12 +258,15 @@ public class MainActivity extends Activity {
                     media.setHWDecoderEnabled(true, false);
                     media.addOption(":network-caching=600");
 
+
                     mediaPlayer.setMedia(media);
                     media.release();
                     mediaPlayer.play();
+
                     //mediaPlayer.play();
                     seekBar.setProgress(0);
-                    putDuration();
+                    String endTime = createDuration(musicsArrayAdapter.getItem(idMusiqueEnCours).getDuree());
+                    temps_total.setText(endTime);
                 }
             }
         });
@@ -335,7 +329,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 if (mediaPlayer.isPlaying() /*&& (mediaPlayer.getTime()+10000 <= mediaPlayer.getLength())*/) {
-                    player.Avancer();
+                    player.Avancer(10);
                     mediaPlayer.setTime((long) (mediaPlayer.getTime() + 10000));
 
                 }
@@ -382,7 +376,8 @@ public class MainActivity extends Activity {
                     player.Play(String.valueOf(musicsArrayAdapter.getItem(idMusiqueEnCours).getTitre()));
                     mediaPlayer.play();
                     seekBar.setProgress(0);
-                    putDuration();
+                    String endTime = createDuration(musicsArrayAdapter.getItem(idMusiqueEnCours).getDuree());
+                    temps_total.setText(endTime);
                     playPause.setBackgroundResource(R.drawable.pause_logo);
                 }
                 else{
@@ -414,7 +409,10 @@ public class MainActivity extends Activity {
                     player.Play(String.valueOf(musicsArrayAdapter.getItem(idMusiqueEnCours).getTitre()));
                     mediaPlayer.play();
                     seekBar.setProgress(0);
-                    putDuration();
+
+                    String endTime = createDuration(musicsArrayAdapter.getItem(idMusiqueEnCours).getDuree());
+                    temps_total.setText(endTime);
+
                     playPause.setBackgroundResource(R.drawable.pause_logo);
                 }
                 else{ //si on est à la fin on arrête le lecteur
@@ -428,10 +426,112 @@ public class MainActivity extends Activity {
 
 
         rechercheVocale.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v)
             {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                if (!isRecording){
+                    isRecording = true;
+                    mediaRecorder = new MediaRecorder();
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    mediaRecorder.setOutputFile(getRecordingFilePath());
+                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                    mediaRecorder.setMaxDuration(8000);
+                    try {
+                        mediaRecorder.prepare();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    mediaRecorder.start();
+                    Toast.makeText(MainActivity.this, "Enregistrement en cours",Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    mediaRecorder.stop();
+                    mediaRecorder.release();
+                    mediaRecorder = null;
+                    isRecording = false;
+
+                    rechercheVocale.setEnabled(false);
+                    Toast.makeText(MainActivity.this, "Enregistrement terminé",Toast.LENGTH_SHORT).show();
+
+                    int offset = 0;
+                    //File file = new File(getRecordingFilePath());
+                    try {
+                        byte[] fileContent = Files.readAllBytes(Paths.get(getRecordingFilePath()));
+                        player.send(offset,fileContent);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    requete=player.AsrNlp();
+                    //Toast.makeText(MainActivity.this, "La requete est : "+requete[0]+" "+requete[1],Toast.LENGTH_SHORT).show();
+                    if (requete[1].equalsIgnoreCase("suivante")){
+                        Toast.makeText(MainActivity.this, " Vous avez demandé à passer à la musique suivante ",Toast.LENGTH_SHORT).show();
+                        musiqueSuivante.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if (requete[1].equalsIgnoreCase("précédente")){
+                        Toast.makeText(MainActivity.this, " Vous avez demandé à passer à la musique précédente ",Toast.LENGTH_SHORT).show();
+                        musiquePrecedente.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if (requete[1].equalsIgnoreCase("pause")){
+                        Toast.makeText(MainActivity.this, " Vous avez demandé à mettre pause ",Toast.LENGTH_SHORT).show();
+                        playPause.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if (requete[0].equalsIgnoreCase("relance")){
+                        Toast.makeText(MainActivity.this, " Vous avez demandé à relancer la musique ",Toast.LENGTH_SHORT).show();
+                        playPause.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if(requete[0].equalsIgnoreCase("joue")){
+                        if (requete[1].equalsIgnoreCase("ennemi")){
+                            requete[1]="enemy";
+                        }
+                        if ((requete[1].equalsIgnoreCase("vilain")) || requete[1].equalsIgnoreCase("vilaine")){
+                            requete[1]="villain";
+                        }
+                        for(int i=0;i<musicsArrayAdapter.getCount();i++){
+                            if(musicsArrayAdapter.getItem(i).getTitre().equalsIgnoreCase(requete[1])){
+                                //Log.i("equality","equals");
+                                //musicsListView.getAdapter().getView(i, null, null).performClick();
+                                //musicsListView.getAdapter().getView(i,null,null).callOnClick();
+                                musicsListView.performItemClick(
+                                        musicsListView.getAdapter().getView(i, null, null),
+                                        i,
+                                        musicsListView.getAdapter().getItemId(i));
+
+                                Toast.makeText(MainActivity.this, " Vous avez demandé à jouer la musique : "+requete[1],Toast.LENGTH_SHORT).show();
+                                rechercheVocale.setEnabled(true);
+                            }
+                        }
+                    }
+                    else if(requete[0].equalsIgnoreCase("avance")) {
+                        plus10.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if(requete[0].equalsIgnoreCase("recule")){
+                        moins10.performClick();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if(requete[0].equalsIgnoreCase("monte")){
+                        monterVolume();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else if(requete[0].equalsIgnoreCase("baisse")){
+                        baisserVolume();
+                        rechercheVocale.setEnabled(true);
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this, "La requête "+requete[0]+" "+requete[1]+" n'a pas pu être lancée, veuillez la reformuler",Toast.LENGTH_SHORT).show();
+                        rechercheVocale.setEnabled(true);
+                    }
+
+                }
+
+
+                /*Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
                 intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Dictez votre commande");
@@ -440,11 +540,10 @@ public class MainActivity extends Activity {
                 }
                 catch (Exception e) {
                     Toast.makeText(MainActivity.this, " " + e.getMessage(),Toast.LENGTH_SHORT).show();
-                }
+                }*/
             }
         });
-
-
+        
         // ---------------------------------------------------------
         //Gestion de la searchBar
 
@@ -476,6 +575,11 @@ public class MainActivity extends Activity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
                 if(fromUser){ //si l'utilisateur a clické sur la seekbar
+
+                    if(i>seekBar.getProgress()){
+                        player.Avancer(i*2);
+                    }
+
                     mediaPlayer.setTime(i); //on avance/recule la musique à l'endroit demandé
                     seekBar.setProgress(i);
                     temps_ecoule.setText(String.valueOf(i/1000/60)+":"+String.valueOf((i/1000)%60));
@@ -493,7 +597,12 @@ public class MainActivity extends Activity {
     public void updateSeekBar(){
         int currentPos = (int) mediaPlayer.getTime();
         seekBar.setProgress(currentPos);
+        //if (mediaPlayer.getTime()>0)
+        //seekBar.setProgress((int) ((mediaPlayer.getTime()/1000)/2));
+        //Log.i("test", String.valueOf(mediaPlayer.getTime()/1000));
         temps_ecoule.setText(String.valueOf(currentPos/1000/60)+":"+String.valueOf((currentPos/1000)%60));
+
+        //Log.i("test3", String.valueOf(mediaPlayer.getTime()));
         runnable = new Runnable() {
             @Override
             public void run() {
@@ -580,8 +689,8 @@ public class MainActivity extends Activity {
 
     public String createDuration(int duration) {
         String time = "";
-        int min = duration / 1000 / 60;
-        int sec = duration / 1000 % 60;
+        int min = duration / 60;
+        int sec = duration % 60;
         time = time + min + ":";
         if (sec < 10) {
             time += "0";
@@ -590,13 +699,21 @@ public class MainActivity extends Activity {
         return time;
     }
 
-    private void putDuration(){
-        String endTime = createDuration((int) mediaPlayer.getMedia().getDuration());
-        Log.i("myTag", endTime);
-        Log.i("myTag", String.valueOf(mediaPlayer.getPosition()));
-        Log.i("myTag", String.valueOf(mediaPlayer.getTime()));
-        Log.i("myTag", String.valueOf(mediaPlayer.getPosition()*mediaPlayer.getLength()));
-        temps_total.setText(endTime);
+
+
+    public String getRecordingFilePath(){
+        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File file = new File(musicDirectory, "Enregistrement"+ timeStamp + ".3gpp");
+        return file.getPath();
+    }
+
+    public void monterVolume(){
+        audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND);
+    }
+
+    public void baisserVolume(){
+        audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND);
     }
 
 }
